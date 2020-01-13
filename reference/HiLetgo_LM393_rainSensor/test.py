@@ -16,10 +16,9 @@ def get_rain_state():
     return 'sunny'
 
 def main():
-    while True:
-        print("Start checking...")
-        weather = get_rain_state()
-        print(weather)
+    print("Start checking...")
+    weather = get_rain_state()
+    print(weather)
 
 
 if __name__ == "__main__":
