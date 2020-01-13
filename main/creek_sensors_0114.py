@@ -20,6 +20,8 @@ LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 # RainSensor Setting
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(15, GPIO.IN)
+RAIN_REPE_NUM = 100
+RAIN_REPE_TIME = 0.2
 
 # TemperatureSensor Setting
 SENSOR_ID = "28-01191ed4dcbc"
@@ -29,8 +31,8 @@ ERR_VAL = 85000
 # DO,pH Setting
 ADC = Adafruit_ADS1x15.ADS1115()
 GAIN = 1
-REPE_NUM = 100
-REPE_TIME = 0.2
+DOPH_REPE_NUM = 150
+DOPH_REPE_TIME = 0.2
 
 PH_MID = 25200
 PH_SLOPE_LOW = 1192
@@ -65,11 +67,12 @@ def do_calc(value):
 
 def get_rain_state():
     try:
-        weather = GPIO.input(15)
-        if weather == 1:
-            return 'sunny'
-        else:
-            return 'rainy'
+        for _ in range(RAIN_REPE_NUM):
+            weather = GPIO.input(15)
+            if weather == 0:
+                return 'rainy'
+            sleep(RAIN_REPE_TIME)
+        return 'sunny'
     except:
         return None
 
@@ -90,13 +93,13 @@ def get_DoPh_value():
     try:
         do_sum = 0
         ph_sum = 0
-        for _ in range(REPE_NUM):
+        for _ in range(DOPH_REPE_NUM):
             do_sum += ADC.read_adc(0, gain=GAIN)
             ph_sum += ADC.read_adc(1, gain=GAIN)
             sleep(REPE_TIME)
 
-        do_value = do_sum/REPE_NUM
-        ph_value = ph_sum/REPE_NUM
+        do_value = do_sum/DOPH_REPE_NUM
+        ph_value = ph_sum/DOPH_REPE_NUM
         do = do_calc(do_value)
         ph = ph_calc(ph_value)
         return do, ph
