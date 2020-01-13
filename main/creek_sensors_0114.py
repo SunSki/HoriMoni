@@ -100,7 +100,7 @@ def get_DoPh_value():
         ph = ph_calc(ph_value)
         return ph, do
     except:
-        return None
+        return None, None
 
 # weather, temp, do, ph
 def get_data():
