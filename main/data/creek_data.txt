@@ -1,0 +1,3 @@
+掘水質データ
+SPREADSHEET_KEY = '18jf-W56QqMvjSUgvxBv76Hm3H-HEmgkUZTz-7_Qx1F8'
+https://docs.google.com/spreadsheets/d/18jf-W56QqMvjSUgvxBv76Hm3H-HEmgkUZTz-7_Qx1F8/edit#gid=0

@@ -1,13 +1,21 @@
 
+import csv
+from datetime import datetime
+import json
 import subprocess
 import sys
-import time
+from time import sleep
 
 import Adafruit_ADS1x15
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import RPi.GPIO as GPIO
 
 # General Setting
 SLEEP_TIME = 30 * 60
+LOCATION = "test"
+CSV_FILE = "data/creek_data.csv"
+LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 # RainSensor Setting
 GPIO.setmode(GPIO.BCM)
@@ -33,6 +41,15 @@ PH_INTERCEPT_HIGH = 14257
 DO_SLOPE = -474
 DO_INTERCEPT = 1312
 
+# gspread Setting
+SCOPE = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
+CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name('/home/pi/Key/creeks-1574788873145-ecb1ac12ac88.json', SCOPE)
+GC = gspread.authorize(CREDENTIALS)
+
+SPREADSHEET_KEY = '18jf-W56QqMvjSUgvxBv76Hm3H-HEmgkUZTz-7_Qx1F8' # 共有設定したスプレッドシートキー
+WORKSHEET = GC.open_by_key(SPREADSHEET_KEY).sheet1 # 共有設定したスプレッドシートのシート１を開く
+
+
 def ph_calc(value):
     if value < PH_MID:
         ph = (value - PH_INTERCEPT_LOW) / PH_SLOPE_LOW
@@ -44,13 +61,6 @@ def do_calc(value):
     do = (value - DO_INTERCEPT) / DO_SLOPE
     return do
 
-def main():
-    while True:
-        weather = get_rain_state()
-        temp = get_temp_value()
-        do, ph = get_DoPh_value()
-
-        time.sleep()
 
 def get_rain_state():
     try:
@@ -82,7 +92,7 @@ def get_DoPh_value():
         for _ in range(REPE_NUM):
             do_sum += ADC.read_adc(0, gain=GAIN)
             ph_sum += ADC.read_adc(1, gain=GAIN)
-            time.sleep(REPE_TIME)
+            sleep(REPE_TIME)
 
         do_value = do_sum/REPE_NUM
         ph_value = ph_sum/REPE_NUM
@@ -91,6 +101,48 @@ def get_DoPh_value():
         return ph, do
     except:
         return None
+
+# weather, temp, do, ph
+def get_data():
+    try:
+        weather = get_rain_state()
+        temp = get_temp_value()
+        do, ph = get_DoPh_value()
+        return weather, temp, do, ph
+    except:
+        return None
+
+def write_csv(list):
+    with open(CSV_FILE, 'a') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        writer.writerow(list)
+
+def write_spreadsheet(data):
+    index = 1
+    while True:
+        num = str(index)
+        Acell = 'A' + num
+        if not WORKSHEET.acell(Acell).value:
+            break
+        index += 1
+
+    data_num = len(data)
+    row_ids = list(LETTERS)
+    for i in range(data_num):
+        row_id = row_ids[i]
+        cell = row_id + num
+        WORKSHEET.update_acell(cell, data[i])
+
+def main():
+    while True:
+        weather, temp, do, ph = get_data()
+        dt = datetime.now().strftime('%Y/%m/%d/%H:%M')
+        data = [dt, weather, temp, do, ph, LOCATION]
+        
+        write_csv(data)
+
+        sleep(SLEEP_TIME)
+
 
 if __name__ == '__main__':
     main()
