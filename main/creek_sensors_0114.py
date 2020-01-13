@@ -76,7 +76,7 @@ def get_temp_value():
     try:
         res = subprocess.check_output(["cat", SENSOR_W1_SLAVE])
         res = res.decode()
-        temp_val = res.split()("=")
+        temp_val = res.split("=")
         if temp_val[-1] == ERR_VAL:
             print("Got value:85000. Circuit is ok, but something wrong happens...")
             sys.exit(1)
