@@ -104,10 +104,14 @@ def get_DoPh_value():
 
 # weather, temp, do, ph
 def get_data():
+    print("Start Get data...")
     try:
         weather = get_rain_state()
+        print("weather: {}".format(weather))
         temp = get_temp_value()
+        print("temp: {}".format(temp))
         do, ph = get_DoPh_value()
+        print("do: {}, ph: {}".format(do, ph))
         return weather, temp, do, ph
     except:
         return None
@@ -116,6 +120,7 @@ def write_csv(list):
     with open(CSV_FILE, 'a') as f:
         writer = csv.writer(f, lineterminator='\n')
         writer.writerow(list)
+    print("Finish writing csv")
 
 def write_spreadsheet(data):
     index = 1
@@ -132,6 +137,7 @@ def write_spreadsheet(data):
         row_id = row_ids[i]
         cell = row_id + num
         WORKSHEET.update_acell(cell, data[i])
+    print("Finish writing spreadsheet")
 
 def main():
     while True:
@@ -141,6 +147,7 @@ def main():
         
         write_csv(data)
 
+        print("Sleep {}s".format(SLEEP_TIME))
         sleep(SLEEP_TIME)
 
 
