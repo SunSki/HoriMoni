@@ -16,4 +16,4 @@
 - RaspberryPi Zero
 
 センサー
-- mainのREADME参照
+- reference/blueprint_of_hard/README.md　を参照
