@@ -1,0 +1,9 @@
+### calibration-1
+https://docs.google.com/spreadsheets/d/1RjTwVeEGhl9aX_DSvwGD9jUqm5yn9iQ0-NQ-HB9pbnA/edit?usp=sharing
+
+PH_MID = 25200
+PH_SLOPE_LOW = 1192
+PH_INTERCEPT_LOW = 17177
+PH_SLOPE_HIGH = 1626
+PH_INTERCEPT_HIGH = 14257
+
