@@ -96,7 +96,7 @@ def get_DoPh_value():
         for _ in range(DOPH_REPE_NUM):
             do_sum += ADC.read_adc(0, gain=GAIN)
             ph_sum += ADC.read_adc(1, gain=GAIN)
-            sleep(REPE_TIME)
+            sleep(DOPH_REPE_TIME)
 
         do_value = do_sum/DOPH_REPE_NUM
         ph_value = ph_sum/DOPH_REPE_NUM
