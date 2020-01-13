@@ -38,17 +38,18 @@ PH_INTERCEPT_LOW = 17177
 PH_SLOPE_HIGH = 1626
 PH_INTERCEPT_HIGH = 14257
 
-DO_SLOPE = -474
-DO_INTERCEPT = 1312
+DO_SLOPE = 474
+DO_INTERCEPT = -1312
 
 # gspread Setting
+print("Start gspread setting...")
 SCOPE = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name('/home/pi/Key/creeks-1574788873145-ecb1ac12ac88.json', SCOPE)
 GC = gspread.authorize(CREDENTIALS)
 
 SPREADSHEET_KEY = '18jf-W56QqMvjSUgvxBv76Hm3H-HEmgkUZTz-7_Qx1F8' # 共有設定したスプレッドシートキー
 WORKSHEET = GC.open_by_key(SPREADSHEET_KEY).sheet1 # 共有設定したスプレッドシートのシート１を開く
-
+print("Finish gspread setting")
 
 def ph_calc(value):
     if value < PH_MID:
@@ -98,7 +99,7 @@ def get_DoPh_value():
         ph_value = ph_sum/REPE_NUM
         do = do_calc(do_value)
         ph = ph_calc(ph_value)
-        return ph, do
+        return do, ph
     except:
         return None, None
 
@@ -146,6 +147,7 @@ def main():
         data = [dt, weather, temp, do, ph, LOCATION]
         
         write_csv(data)
+        write_spreadsheet(data)
 
         print("Sleep {}s".format(SLEEP_TIME))
         sleep(SLEEP_TIME)
