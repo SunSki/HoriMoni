@@ -12,7 +12,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import RPi.GPIO as GPIO
 
 # General Setting
-SLEEP_TIME = 30 * 60
+SLEEP_TIME = 10 * 60
 LOCATION = "test"
 CSV_FILE = "data/creek_data.csv"
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -45,13 +45,20 @@ DO_INTERCEPT = -1312
 
 # gspread Setting
 print("Start gspread setting...")
-SCOPE = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name('/home/pi/Key/creeks-1574788873145-ecb1ac12ac88.json', SCOPE)
-GC = gspread.authorize(CREDENTIALS)
+try:
+    SCOPE = ['https://spreadsheets.google.com/feeds',
+             'https://www.googleapis.com/auth/drive']
+    CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name(
+        '/home/pi/Key/creeks-1574788873145-ecb1ac12ac88.json', SCOPE)
+    GC = gspread.authorize(CREDENTIALS)
 
-SPREADSHEET_KEY = '18jf-W56QqMvjSUgvxBv76Hm3H-HEmgkUZTz-7_Qx1F8' # 共有設定したスプレッドシートキー
-WORKSHEET = GC.open_by_key(SPREADSHEET_KEY).sheet1 # 共有設定したスプレッドシートのシート１を開く
-print("Finish gspread setting")
+    SPREADSHEET_KEY = '18jf-W56QqMvjSUgvxBv76Hm3H-HEmgkUZTz-7_Qx1F8'  # 共有設定したスプレッドシートキー
+    # 共有設定したスプレッドシートのシート１を開く
+    WORKSHEET = GC.open_by_key(SPREADSHEET_KEY).sheet1
+    print("Finish gspread setting")
+except:
+    print("Error: gspread setting")
+
 
 def ph_calc(value):
     if value < PH_MID:
@@ -59,6 +66,7 @@ def ph_calc(value):
     else:
         ph = (value - PH_INTERCEPT_HIGH) / PH_SLOPE_HIGH
     return ph
+
 
 def do_calc(value):
     do = (value - DO_INTERCEPT) / DO_SLOPE
@@ -76,6 +84,7 @@ def get_rain_state():
     except:
         return None
 
+
 def get_temp_value():
     try:
         res = subprocess.check_output(["cat", SENSOR_W1_SLAVE])
@@ -88,6 +97,7 @@ def get_temp_value():
         return temp_val
     except:
         return None
+
 
 def get_DoPh_value():
     try:
@@ -107,6 +117,8 @@ def get_DoPh_value():
         return None, None
 
 # weather, temp, do, ph
+
+
 def get_data():
     print("Start Get data...")
     try:
@@ -120,35 +132,41 @@ def get_data():
     except:
         return None
 
+
 def write_csv(list):
     with open(CSV_FILE, 'a') as f:
         writer = csv.writer(f, lineterminator='\n')
         writer.writerow(list)
     print("Finish writing csv")
 
-def write_spreadsheet(data):
-    index = 1
-    while True:
-        num = str(index)
-        Acell = 'A' + num
-        if not WORKSHEET.acell(Acell).value:
-            break
-        index += 1
 
-    data_num = len(data)
-    row_ids = list(LETTERS)
-    for i in range(data_num):
-        row_id = row_ids[i]
-        cell = row_id + num
-        WORKSHEET.update_acell(cell, data[i])
-    print("Finish writing spreadsheet")
+def write_spreadsheet(data):
+    try:
+        index = 1
+        while True:
+            num = str(index)
+            Acell = 'A' + num
+            if not WORKSHEET.acell(Acell).value:
+                break
+            index += 1
+
+        data_num = len(data)
+        row_ids = list(LETTERS)
+        for i in range(data_num):
+            row_id = row_ids[i]
+            cell = row_id + num
+            WORKSHEET.update_acell(cell, data[i])
+        print("Finish writing spreadsheet")
+    except:
+        print("Error: writing spreadsheet")
+
 
 def main():
     while True:
         weather, temp, do, ph = get_data()
         dt = datetime.now().strftime('%Y/%m/%d/%H:%M')
         data = [dt, weather, temp, do, ph, LOCATION]
-        
+
         write_csv(data)
         write_spreadsheet(data)
 
