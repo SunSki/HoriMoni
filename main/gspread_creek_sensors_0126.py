@@ -145,7 +145,7 @@ def read_tmp_csv():
 
 
 def recreate_tmp_csv():
-    with open(TMP_CSV_FILE, 'r') as f:
+    with open(TMP_CSV_FILE, 'w') as f:
         print('Recreated TMP CSV ')
 
 
@@ -172,13 +172,15 @@ def write_spreadsheet():
                 break
             index += 1
 
-        csv_data = read_csv()
+        csv_data = read_tmp_csv()
         for data in csv_data:
             data_num = len(data)
             for i in range(data_num):
                 row_id = LETTERS[i]  # A,B,C,D,E,F,G...
                 cell = row_id + num  # A15, B15, C15, ...
                 WORKSHEET.update_acell(cell, data[i])
+            num = str(int(num) + 1)
+            sleep(10)
         recreate_tmp_csv()
         print("Finish writing spreadsheet")
     except:
