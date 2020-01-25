@@ -93,7 +93,7 @@ def get_DoPh_value():
             do_volt = ADC.read_adc(0, gain=GAIN)
             ph_volt = ADC.read_adc(1, gain=GAIN)
             do_list.append(round(do_volt, -2))
-            ph_list.append(round(do_volt, -2))
+            ph_list.append(round(ph_volt, -2))
             sleep(DOPH_REPE_TIME)
 
         try:
