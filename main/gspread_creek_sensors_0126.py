@@ -16,7 +16,9 @@ import RPi.GPIO as GPIO
 SLEEP_TIME = 10 * 60
 LOCATION = "test"
 CSV_FILE = "data/creek_data.csv"
-LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+TMP_CSV_FILE = "data/tmp_creek_data.csv"
+LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+           'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
 # RainSensor Setting
 GPIO.setmode(GPIO.BCM)
@@ -43,6 +45,12 @@ PH_INTERCEPT_HIGH = 14257
 
 DO_SLOPE = 474
 DO_INTERCEPT = -1312
+
+# Gspread Setting
+SPREADSHEET_KEY = '18jf-W56QqMvjSUgvxBv76Hm3H-HEmgkUZTz-7_Qx1F8'  # 共有設定したスプレッドシートキー
+SCOPE = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+KEY_PATH = '/home/pi/Key/creeks-1574788873145-ecb1ac12ac88.json'
 
 
 def ph_calc(value):
@@ -123,20 +131,31 @@ def write_csv(list):
     with open(CSV_FILE, 'a') as f:
         writer = csv.writer(f, lineterminator='\n')
         writer.writerow(list)
+    with open(TMP_CSV_FILE, 'a') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        writer.writerow(list)
     print("Finish writing csv")
 
 
-def write_spreadsheet(data):
+def read_tmp_csv():
+    with open(TMP_CSV_FILE, 'r') as f:
+        reader = csv.reader(f)
+        csv_data = [row for row in reader]
+    return csv_data
+
+
+def recreate_tmp_csv():
+    with open(TMP_CSV_FILE, 'r') as f:
+        print('Recreated TMP CSV ')
+
+
+def write_spreadsheet():
     # gspread Setting
     print("Start gspread setting...")
     try:
-        SCOPE = ['https://spreadsheets.google.com/feeds',
-                 'https://www.googleapis.com/auth/drive']
         CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name(
-            '/home/pi/Key/creeks-1574788873145-ecb1ac12ac88.json', SCOPE)
+            KEY_PATH, SCOPE)
         GC = gspread.authorize(CREDENTIALS)
-
-        SPREADSHEET_KEY = '18jf-W56QqMvjSUgvxBv76Hm3H-HEmgkUZTz-7_Qx1F8'  # 共有設定したスプレッドシートキー
         # 共有設定したスプレッドシートのシート１を開く
         WORKSHEET = GC.open_by_key(SPREADSHEET_KEY).sheet1
         print("Finish gspread setting")
@@ -153,12 +172,14 @@ def write_spreadsheet(data):
                 break
             index += 1
 
-        data_num = len(data)
-        row_ids = list(LETTERS)
-        for i in range(data_num):
-            row_id = row_ids[i]
-            cell = row_id + num
-            WORKSHEET.update_acell(cell, data[i])
+        csv_data = read_csv()
+        for data in csv_data:
+            data_num = len(data)
+            for i in range(data_num):
+                row_id = LETTERS[i]  # A,B,C,D,E,F,G...
+                cell = row_id + num  # A15, B15, C15, ...
+                WORKSHEET.update_acell(cell, data[i])
+        recreate_tmp_csv()
         print("Finish writing spreadsheet")
     except:
         print("Error: writing spreadsheet")
@@ -171,7 +192,8 @@ def main():
         data = [dt, weather, temp, do, ph, LOCATION]
 
         write_csv(data)
-        # write_spreadsheet(data)
+
+        write_spreadsheet()
 
         print("Sleep {}s".format(SLEEP_TIME))
         sleep(SLEEP_TIME)
