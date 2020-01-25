@@ -62,3 +62,6 @@ def write_spreadsheet():
         print("Finish writing spreadsheet")
     except:
         print("Error: writing spreadsheet")
+
+
+write_spreadsheet()
